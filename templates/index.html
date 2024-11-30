@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot and Project Recommendation</title>
+</head>
+<body>
+    <h1>Chatbot and Project Recommendation System</h1>
+    <h2>Chat with the Bot</h2>
+    <form id="chat-form">
+        <label for="user_input">Your Message:</label>
+        <input type="text" id="user_input" name="user_input" required>
+        <button type="submit">Send</button>
+    </form>
+    <div id="chat-history"></div>
+
+    <h2>Get Project Recommendations</h2>
+    <form id="recommendation-form">
+        <label for="user_query">Your Query:</label>
+        <input type="text" id="user_query" name="user_query" required>
+        <button type="submit">Get Recommendations</button>
+    </form>
+    <div id="recommendations"></div>
+
+    <script>
+        document.getElementById('chat-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const userInput = document.getElementById('user_input').value;
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_input: userInput, chat_history_ids: null })
+            });
+            const data = await response.json();
+            document.getElementById('chat-history').innerHTML += `<p>You: ${userInput}</p><p>Bot: ${data.response}</p>`;
+            document.getElementById('user_input').value = '';
+        };
+
+        document.getElementById('recommendation-form').onsubmit = async function(event) {
+            event.preventDefault();
+            const userQuery = document.getElementById('user_query').value;
+            const response = await fetch('/recommend_projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_query: userQuery })
+            });
+            const data = await response.json();
+            let recommendationsHtml = '<h3>Recommendations:</h3><ul>';
+            data.recommendations.forEach(project => {
+                recommendationsHtml += `<li>${project.job_description} (Similarity: ${project.similarity})</li>`;
+            });
+            recommendationsHtml += '</ul>';
+            document.getElementById('recommendations').innerHTML = recommendationsHtml;
+            document.getElementById('user_query').value = '';
+        };
+    </script>
+</body>
+</html>
